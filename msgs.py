@@ -1,7 +1,7 @@
 start_user = (
     '<b>Olá!</b>'
     '\nEste bot é capaz de receber mensagens de voz de usuários para que sejam tocadas no chat de voz de maneira organizada.'
-    '\nPara saber mais, visite: https://blog.gabrf.com'
+    '\nPara saber mais, visite: https://blog.gabrf.com/posts/TelegramVoiceChat/'
 )
 
 start_admin = (
