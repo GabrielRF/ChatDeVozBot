@@ -12,13 +12,11 @@ TOKEN = config['CHATDEVOZBOT']['TOKEN']
 ADMIN = ['creator', 'administrator']
 COMMANDS = ['/iniciar', '/parar']
 
-markup_talk = types.ReplyKeyboardMarkup(resize_keyboard=True)
-markup_clean = types.ReplyKeyboardRemove(selective=False)
-
 bot = telebot.TeleBot(TOKEN)
 
 grupo = {}
 usuario = {}
+pinned = {}
 
 logger_info = logging.getLogger('InfoLogger')
 logger_info.setLevel(logging.DEBUG)
@@ -43,14 +41,13 @@ def bot_start(message):
         if status in ADMIN:
             grupo[str(message.chat.id)] = str(message.from_user.id)
             try:
-                #markup_talk.row(url="https://t.me/ChatDeVozBot?start=" + str(message.chat.id))
                 talk_btn = types.InlineKeyboardMarkup()
                 talk_btn.row(types.InlineKeyboardButton("✋", url="https://t.me/ChatDeVozBot?start=" + str(message.chat.id)))
 
                 bot.send_message(message.from_user.id, msgs.start_admin, parse_mode='HTML')
-                #bot.send_message(message.chat.id, '<b>Chat de voz iniciado!</b>\nQuer falar algo? Clique no botão ✋', parse_mode='HTML', reply_markup=markup_talk)
                 msg = bot.send_message(message.chat.id, msgs.start_group, parse_mode='HTML', reply_markup=talk_btn)
                 bot.pin_chat_message(message.chat.id, msg.message_id, disable_notification=True)
+                pinned[message.chat.id] = msg.message_id
             except:
                 bot.send_message(message.chat.id, msgs.start_user_unstarted, parse_mode='HTML')
     try:
@@ -66,15 +63,17 @@ def bot_stop(message):
         if message.chat.id < 0:
             status = bot.get_chat_member(message.chat.id, message.from_user.id).status
             if status in ADMIN:
-                bot.unpin_chat_message(message.chat.id)
+                bot.unpin_chat_message(message.chat.id, message_id=pinned[message.chat.id])
                 grupo[str(message.chat.id)] = None
-                bot.send_message(message.chat.id, msgs.stop_group, parse_mode='HTML', reply_markup=markup_clean)
+                bot.send_message(message.chat.id, msgs.stop_group, parse_mode='HTML')
     except:
         pass
     bot.delete_message(message.chat.id, message.message_id)
 
 @bot.message_handler(content_types=['voice'])
 def get_voice_msg(message):
+    if message.chat.id < 0:
+        return 0
     log_text(message)
     bot.send_chat_action(message.chat.id, 'typing')
     try:
@@ -83,7 +82,7 @@ def get_voice_msg(message):
         usuario[message.from_user.id] = None
         bot.reply_to(message, msg, parse_mode='HTML', disable_web_page_preview=True)
     except KeyError:
-        bot.reply_to(message, msgs.voice_not_forwarded)
+        bot.reply_to(message, msgs.voice_not_forwarded, parse_mode='HTML')
 
 @bot.message_handler(commands=['start'])
 def bot_start(message):
