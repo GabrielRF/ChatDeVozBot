@@ -1,7 +1,7 @@
 start_user = (
     '<b>Olá!</b>'
     '\nEste bot é capaz de receber mensagens de voz de usuários para que sejam tocadas no chat de voz de maneira organizada.'
-    '\nPara saber mais, visite: https://blog.gabrf.com/posts/TelegramVoiceChat/'
+    '\nPara saber mais, visite:\nhttps://blog.gabrf.com/posts/TelegramVoiceChat/'
 )
 
 start_admin = (
@@ -31,7 +31,7 @@ stop_group = (
 
 voice_start = (
     'Envie em uma única gravação sua mensagem de voz.'
-    '\nCaso aprovada, esta mensagem será tocada no chat de voz.'
+    '\nCaso seja aprovada, esta mensagem será tocada no chat de voz.'
 )
 
 voice_forwarded = (
