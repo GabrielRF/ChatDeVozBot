@@ -11,9 +11,9 @@ start_admin = (
 )
 
 start_group = (
-    '<b>Partipe do Chat de Voz!</b>'
-    '\nClique no botão ✋ abaixo e envie uma mensagem de voz ao bot.'
-    '\nApós aprovação, sua mensagem será tocada e respondida ao vivo!'
+    '<b>Participe do Chat de Voz!</b>'
+    '\nClique no botão <code>/Participar</code> e envie uma mensagem de voz ao bot.'
+    '\nApós aprovação, sua mensagem poderá ser tocada e respondida ao vivo!'
 )
 
 start_user_unstarted = (
@@ -38,7 +38,7 @@ voice_forwarded = (
     '<b>Obrigado pela sua participação!</b>'
     '\nSua mensagem foi encaminhada para análise e poderá ser tocada em breve!'
     '\nPara enviar outra mensagem, clique novamente no botão no grupo.'
-    '\n<a href="https://t.me/c/{}/999999999">Clique aqui para voltar ao grupo</a>'
+    '\n<a href="https://t.me/c/{}/{}">Clique aqui para voltar ao grupo</a>'
 )
 
 voice_not_forwarded = (
@@ -52,5 +52,9 @@ voice_not_started = (
 )
 
 voice_not_started_not_admin = (
-    'Para mais informações, fale comigo em privado.'
+    '<a href="tg://user?id={}">🗣 </a>Para mais informações, fale comigo em privado.'
+)
+
+voice_group_send = (
+    '<a href="tg://user?id={}">🗣 </a><a href="https://t.me/ChatDeVozBot?start={}">Clique aqui</a> para enviar sua mensagem de voz'
 )
