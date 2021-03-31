@@ -58,3 +58,22 @@ voice_not_started_not_admin = (
 voice_group_send = (
     '<a href="tg://user?id={}">🗣 </a><a href="https://t.me/ChatDeVozBot?start={}">Clique aqui</a> para enviar sua mensagem de voz'
 )
+
+voice_started = (
+    '<b>Chat de Voz iniciado no grupo {}</b>'
+    '\n<a href="https://t.me/c/{}/{}">Clique aqui para participar!</a>'
+)
+
+voice_sub = (
+    'Te adicionei na lista do grupo <b>{}</b>!'
+    '\nIrei te avisar assim que um novo chat de voz começar.'
+)
+
+voice_unsub = (
+    'Você não mais receberá alertas do grupo <b>{}</b>.'
+)
+
+notified = (
+    '<b>{} pessoas notificadas do início do chat de voz.</b>'
+    '\n\nQuer receber um aviso também? Envie /MeAvise!'
+)
