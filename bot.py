@@ -2,7 +2,9 @@ import configparser
 from datetime import datetime
 import logging.handlers
 import msgs
+import os
 import sqlite3
+import subprocess
 import telebot
 import time
 from telebot import types
@@ -71,8 +73,8 @@ def add_group(groupid, adminid, pinid):
 def add_sub(groupid, userid):
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
-    aux = ('''INSERT INTO g{} (userid)
-        VALUES ('{}')''').format((groupid*-1), userid)
+    aux = ('''INSERT INTO {} (userid)
+        VALUES ('{}')''').format((groupid), userid)
     cursor.execute(aux)
     conn.commit()
     conn.close()
@@ -80,8 +82,8 @@ def add_sub(groupid, userid):
 def del_sub(groupid, userid):
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
-    aux = ('''DELETE FROM g{}
-        WHERE userid = {}''').format((groupid*-1), userid)
+    aux = ('''DELETE FROM {}
+        WHERE userid = {}''').format((groupid), userid)
     cursor.execute(aux)
     conn.commit()
     conn.close()
@@ -109,7 +111,6 @@ def bot_start(message):
     if message.chat.id < 0:
         status = bot.get_chat_member(message.chat.id, message.from_user.id).status
         group = select_info('ChatDeVoz', 'groupid', message.chat.id)
-        print(group)
         if status in ADMIN:
             try:
                 bot.send_message(message.from_user.id, msgs.start_admin, parse_mode='HTML')
@@ -135,7 +136,6 @@ def bot_start(message):
         usuario[message.from_user.id] = message.chat.id
     except:
         group = select_info('ChatDeVoz', 'groupid', message.chat.id)
-        print(group)
         if group:
             msg = bot.send_message(message.chat.id, msgs.voice_group_send.format(message.from_user.id, message.chat.id), parse_mode='HTML', disable_web_page_preview=True)
             try:
@@ -173,7 +173,6 @@ def get_voice_msg(message):
     bot.send_chat_action(message.chat.id, 'typing')
     try:
         group = select_info('ChatDeVoz', 'groupid', str(usuario[message.from_user.id]))
-        print(group)
         msg = msgs.voice_forwarded.format(
             str(usuario[message.from_user.id]).replace('-100', ''),
             group[2]
@@ -190,7 +189,9 @@ def bot_start(message):
     bot.send_chat_action(message.chat.id, 'typing')
     if message.text.split('@')[0] in COMMANDS:
         return 0
-    if '-100' in message.text:
+    if 'g100' in message.text:
+        bot_notify(message)
+    elif '-100' in message.text:
         msg = bot.send_message(message.from_user.id, msgs.voice_start, parse_mode='HTML')
         usuario[message.from_user.id] = message.text.replace('/start ', '')
     else:
@@ -220,22 +221,29 @@ def bot_notify(message):
             bot.send_message(message.chat.id, msgs.start_user_unstarted, parse_mode='HTML')
             return 0
         groupid = 'g' + str(message.chat.id*-1)
+    elif message.chat.id > 0 and 'start' in message.text:
+        groupid = message.text.replace('/start ','')
+    try:
         try:
             try:
-                user = select_info(groupid, 'userid', message.from_user.id)
-            except sqlite3.OperationalError:
-                create_group_table(groupid)
-                user = select_info(groupid, 'userid', message.from_user.id)
-            if not user:
-                print('Adicionado')
-                add_sub(message.chat.id, message.from_user.id)
-                bot.send_message(message.from_user.id, msgs.voice_sub.format(message.chat.title), parse_mode='HTML')
-            else:
-                print('Removido')
-                del_sub(message.chat.id, message.from_user.id)
-                bot.send_message(message.from_user.id, msgs.voice_unsub.format(message.chat.title), parse_mode='HTML')
-        except:
-            pass
+                groupname = bot.get_chat(groupid.replace('g', '-')).title
+            except:
+                bot.send_message(message.from_user.id, msgs.not_in_group)
+                return 0
+            user = select_info(groupid, 'userid', message.from_user.id)
+        except sqlite3.OperationalError:
+            create_group_table(groupid)
+            user = select_info(groupid, 'userid', message.from_user.id)
+        if not user:
+            print('Adicionado')
+            add_sub(groupid, message.from_user.id)
+            bot.send_message(message.from_user.id, msgs.voice_sub.format(groupname), parse_mode='HTML')
+        else:
+            print('Removido')
+            del_sub(groupid, message.from_user.id)
+            bot.send_message(message.from_user.id, msgs.voice_unsub.format(groupname), parse_mode='HTML')
+    except:
+        pass
 
 #@bot.message_handler(content_types=['voice_chat_started'])
 @bot.message_handler(commands=['Notificar'])
@@ -246,7 +254,7 @@ def voice_notify(message):
         groupid = 'g' + str(message.chat.id*-1)
         users = select_all(groupid)
         for user in users:
-            msg = msgs.voice_started.format(message.chat.title, str(message.chat.id).replace('-100', ''), message.message_id)
+            msg = msgs.voice_started.format(message.chat.title, str(message.chat.id).replace('-100', ''), message.message_id, groupid)
             try:
                 bot.send_message(user[0], msg, parse_mode='HTML', disable_web_page_preview=True)
                 time.sleep(0.2)
@@ -255,7 +263,7 @@ def voice_notify(message):
                 del_sub(message.chat.id, message.from_user.id)
                 pass
         try:
-            bot.send_message(message.chat.id, msgs.notified.format(i), parse_mode='HTML')
+            bot.send_message(message.chat.id, msgs.notified.format(i, groupid), parse_mode='HTML', disable_web_page_preview=True)
         except:
             pass
     try:

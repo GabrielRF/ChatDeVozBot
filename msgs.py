@@ -62,6 +62,8 @@ voice_group_send = (
 voice_started = (
     '<b>Chat de Voz iniciado no grupo {}</b>'
     '\n<a href="https://t.me/c/{}/{}">Clique aqui para participar!</a>'
+    '\n\nPara não receber mais alertas deste grupo'
+    '\n<a href="https://t.me/ChatDeVozBot?start={}">clique aqui</a>.'
 )
 
 voice_sub = (
@@ -74,6 +76,11 @@ voice_unsub = (
 )
 
 notified = (
-    '<b>{} pessoas notificadas do início do chat de voz.</b>'
-    '\n\nQuer receber um aviso também? Envie /MeAvise!'
+    '🗣<b>{} pessoas notificadas do início do chat de voz.</b>🗣'
+    '\n\nQuer receber um aviso também? <a href="https://t.me/ChatDeVozBot?start={}">Clique aqui</a>!'
+)
+
+not_in_group = (
+    'Infelizmente não faço parte deste grupo.'
+    '\nPeça para alguém que administra o grupo para me adicionar lá como administrador e assim poderei te enviar alertas quando um chat de voz começar.'
 )
