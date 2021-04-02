@@ -142,13 +142,14 @@ def bot_start(message):
                 bot.delete_message(message.chat.id, group[2])
             except:
                 pass
-        else:
-            bot.send_message(message.chat.id, msgs.voice_not_started_not_admin.format(message.from_user.id), parse_mode='HTML', disable_web_page_preview=True)
+        # else:
+            # bot.send_message(message.chat.id, msgs.voice_not_started_not_admin.format(message.from_user.id), parse_mode='HTML', disable_web_page_preview=True)
     try:
         bot.delete_message(message.chat.id, message.message_id)
     except:
         pass
 
+@bot.message_handler(content_types=['voice_chat_ended'])
 @bot.message_handler(commands=['parar'])
 def bot_stop(message):
     log_text(message)
@@ -194,19 +195,9 @@ def bot_start(message):
     elif '-100' in message.text:
         msg = bot.send_message(message.from_user.id, msgs.voice_start, parse_mode='HTML')
         usuario[message.from_user.id] = message.text.replace('/start ', '')
-    else:
-        try:
-            print(select_info('ChatDeVoz', 'groupid', str(usuario[message.chat.id])))
-        #if not select_info('groupid', str(usuario[message.from_user.id])):
-        except:
-            status = bot.get_chat_member(message.chat.id, message.from_user.id).status
-            if message.chat.id < 0 and status in ADMIN:
-                bot.reply_to(message, msgs.voice_not_started, parse_mode='HTML')
-            elif message.chat.id < 0 and status not in ADMIN:
-                bot.reply_to(message, msgs.voice_not_started_not_admin, parse_mode='HTML')
-            else:
-                bot.reply_to(message, msgs.start_user, parse_mode='HTML', disable_web_page_preview=True)
-                bot.send_document(message.from_user.id, 'CgACAgEAAxkBAAPTYEexcA2G2cn6g2CdZS4MOVvm4ScAAhgBAAJhYUFGN48mu1WuJXMeBA')
+    elif message.chat.id > 0:
+        bot.reply_to(message, msgs.start_user, parse_mode='HTML', disable_web_page_preview=True)
+        bot.send_document(message.from_user.id, 'CgACAgEAAxkBAAPTYEexcA2G2cn6g2CdZS4MOVvm4ScAAhgBAAJhYUFGN48mu1WuJXMeBA')
 
 @bot.message_handler(commands=['MeAvise'])
 def bot_notify(message):
@@ -245,14 +236,18 @@ def bot_notify(message):
     except:
         pass
 
-#@bot.message_handler(content_types=['voice_chat_started'])
+@bot.message_handler(content_types=['voice_chat_started'])
 @bot.message_handler(commands=['Notificar'])
 def voice_notify(message):
     status = bot.get_chat_member(message.chat.id, message.from_user.id).status
     if status in ADMIN:
         i = 0
         groupid = 'g' + str(message.chat.id*-1)
-        users = select_all(groupid)
+        try:
+            users = select_all(groupid)
+        except:
+            create_group_table(groupid)
+            users = select_all(groupid)
         for user in users:
             msg = msgs.voice_started.format(message.chat.title, str(message.chat.id).replace('-100', ''), message.message_id, groupid)
             try:

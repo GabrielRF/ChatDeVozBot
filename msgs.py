@@ -1,13 +1,16 @@
 start_user = (
     '<b>Olá!</b>'
-    '\nEste bot é capaz de receber mensagens de voz de usuários para que sejam tocadas no chat de voz de maneira organizada.'
-    '\nPara saber mais, visite:\nhttps://blog.gabrf.com/posts/TelegramVoiceChat/'
+    '\nEste bot é capaz de alertar as pessoas quando um chat de voz começar.'
+    '\nBasta me adicionar em um grupo e começar um novo chat de voz para que as pessoas possam ligar os alertas.'
+    '\n'
+    '\nCaso queira utilizar o bot para fazer inserções de voz com mensagens dos ouvintes, visite:'
+    '\nhttps://blog.gabrf.com/posts/TelegramVoiceChat/'
 )
 
 start_admin = (
     '<b>Encaminhamento de mensagens de voz iniciado!</b>'
     '\nTodas as mensagens enviadas ao bot chegarão aqui.'
-    '\nPara encerrar o encaminhamento, envie <code>/parar</code> no grupo.'
+    '\nPara encerrar o encaminhamento, finalize o chat de voz ou envie <code>/parar</code> no grupo.'
 )
 
 start_group = (
