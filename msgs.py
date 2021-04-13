@@ -3,6 +3,9 @@ start_user = (
     '\nEste bot é capaz de alertar as pessoas quando um chat de voz começar.'
     '\nBasta me adicionar em um grupo e começar um novo chat de voz para que as pessoas possam ligar os alertas.'
     '\n'
+    '\nGrupos públicos com chats de voz ligados são listados no canal @Chats_de_Voz.'
+    '\nPara que seu grupo apareça no canal, basta que o bot seja adicionado no grupo.'
+    '\n'
     '\nCaso queira utilizar o bot para fazer inserções de voz com mensagens dos ouvintes, visite:'
     '\nhttps://blog.gabrf.com/posts/TelegramVoiceChat/'
 )
@@ -69,21 +72,29 @@ voice_started = (
     '\n<a href="https://t.me/ChatDeVozBot?start={}">clique aqui</a>.'
 )
 
+voice_started_group = (
+    '<b>@{0}</b>'
+    '\n<a href="https://t.me/{0}?voicechat">Clique aqui para entrar no chat de voz</a>'
+)
+
 voice_sub = (
     'Te adicionei na lista do grupo <b>{}</b>!'
     '\nIrei te avisar assim que um novo chat de voz começar.'
+    '\nQuer conhecer mais grupos? @Chats_de_Voz'
 )
 
 voice_unsub = (
     'Você não mais receberá alertas do grupo <b>{}</b>.'
+    '\nQuer conhecer mais grupos? @Chats_de_Voz'
 )
 
 notified = (
     '🗣<b>{} pessoas notificadas do início do chat de voz.</b>🗣'
-    '\n\nQuer receber um aviso também? <a href="https://t.me/ChatDeVozBot?start={}">Clique aqui</a>!'
+    '\nQuer receber um aviso também? <a href="https://t.me/ChatDeVozBot?start={}">Clique aqui</a>!'
 )
 
 not_in_group = (
     'Infelizmente não faço parte deste grupo.'
     '\nPeça para alguém que administra o grupo para me adicionar lá como administrador e assim poderei te enviar alertas quando um chat de voz começar.'
 )
+

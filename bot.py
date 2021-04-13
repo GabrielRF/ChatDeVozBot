@@ -25,13 +25,32 @@ usuario = {}
 logger_info = logging.getLogger('InfoLogger')
 logger_info.setLevel(logging.DEBUG)
 handler_info = logging.handlers.TimedRotatingFileHandler(
-    '/var/log/ChatDeVoz/chatdevoz.log', when='midnight', interval=1, backupCount=30, encoding='utf-8'
+    '/var/log/ChatDeVoz/chatdevoz.log', when='midnight', interval=1, backupCount=7, encoding='utf-8'
 )
 logger_info.addHandler(handler_info)
 
 markup_btn = types.ReplyKeyboardMarkup(resize_keyboard=True)
 markup_btn.row('/Participar')
 markup_clean = types.ReplyKeyboardRemove(selective=False)
+
+def voice_started(groupid, messageid):
+    conn = sqlite3.connect(db)
+    cursor = conn.cursor()
+    aux = ('''INSERT INTO {} (groupid, messageid)
+        VALUES ('{}', '{}')''').format('Chats_de_Voz', groupid, messageid)
+    cursor.execute(aux)
+    conn.commit()
+    conn.close()
+
+def voice_ended(groupid):
+    conn = sqlite3.connect(db)
+    cursor = conn.cursor()
+    aux = ('''DELETE FROM {}
+        WHERE id = {}''').format('Chats_de_Voz', groupid)
+    cursor.execute(aux)
+    conn.commit()
+    conn.close()
+
 
 def create_group_table(groupid):
     conn = sqlite3.connect(db)
@@ -88,7 +107,7 @@ def del_sub(groupid, userid):
     conn.commit()
     conn.close()
 
-def del_group(groupid):
+def del_group(table, groupid):
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
     aux = ('''DELETE FROM {}
@@ -119,7 +138,7 @@ def bot_start(message):
                     bot.pin_chat_message(message.chat.id, msg.message_id, disable_notification=True)
                     add_group(message.chat.id, message.from_user.id, msg.message_id)
                 else:
-                    del_group(group[1])
+                    del_group('ChatDeVoz', group[1])
                     add_group(message.chat.id, message.from_user.id, group[3])
             except:
                 bot.send_message(message.chat.id, msgs.start_user_unstarted, parse_mode='HTML')
@@ -153,17 +172,24 @@ def bot_start(message):
 @bot.message_handler(commands=['parar'])
 def bot_stop(message):
     log_text(message)
-    bot.send_chat_action(message.chat.id, 'typing')
     try:
         if message.chat.id < 0:
             status = bot.get_chat_member(message.chat.id, message.from_user.id).status
             if status in ADMIN:
                 group = select_info('ChatDeVoz', 'groupid', message.chat.id)
-                del_group(group[1])
+                del_group('ChatDeVoz', group[1])
                 bot.send_message(message.chat.id, msgs.stop_group, parse_mode='HTML', reply_markup=markup_clean)
                 bot.unpin_chat_message(message.chat.id, message_id=group[3])
     except:
         pass
+    groupid = 'g' + str(message.chat.id*-1)
+    msg = select_info('Chats_de_Voz', 'groupid', groupid)
+    if msg:
+        try:
+            voice_ended(msg[0])
+            bot.delete_message('@Chats_De_Voz', msg[2])
+        except:
+            pass
     bot.delete_message(message.chat.id, message.message_id)
 
 @bot.message_handler(content_types=['voice', 'video_note'])
@@ -226,9 +252,10 @@ def bot_notify(message):
             create_group_table(groupid)
             user = select_info(groupid, 'userid', message.from_user.id)
         if not user:
-            print('Adicionado')
-            add_sub(groupid, message.from_user.id)
-            bot.send_message(message.from_user.id, msgs.voice_sub.format(groupname), parse_mode='HTML')
+            if message.from_user.id > 0:
+                print('Adicionado')
+                add_sub(groupid, message.from_user.id)
+                bot.send_message(message.from_user.id, msgs.voice_sub.format(groupname), parse_mode='HTML')
         else:
             print('Removido')
             del_sub(groupid, message.from_user.id)
@@ -239,6 +266,17 @@ def bot_notify(message):
 @bot.message_handler(content_types=['voice_chat_started'])
 @bot.message_handler(commands=['Notificar'])
 def voice_notify(message):
+    groupid = 'g' + str(message.chat.id*-1)
+    msg = select_info('Chats_de_Voz', 'groupid', groupid)
+    try:
+        voice_ended(msg[0])
+    except:
+        pass
+
+    if message.chat.username:
+        msg = bot.send_message('@Chats_de_Voz', msgs.voice_started_group.format(message.chat.username), parse_mode='HTML')
+        voice_started(groupid, msg.message_id)
+
     status = bot.get_chat_member(message.chat.id, message.from_user.id).status
     if status in ADMIN:
         i = 0
@@ -255,12 +293,12 @@ def voice_notify(message):
                 time.sleep(0.2)
                 i = i+1
             except:
-                del_sub(message.chat.id, message.from_user.id)
+                del_sub(groupid, user[0])
                 pass
-        try:
-            bot.send_message(message.chat.id, msgs.notified.format(i, groupid), parse_mode='HTML', disable_web_page_preview=True)
-        except:
-            pass
+    try:
+        bot.send_message(message.chat.id, msgs.notified.format(i, groupid), parse_mode='HTML', disable_web_page_preview=True)
+    except:
+        pass
     try:
         bot.delete_message(message.chat.id, message.message_id)
     except:
