@@ -169,6 +169,7 @@ def bot_start(message):
         pass
 
 @bot.message_handler(content_types=['voice_chat_ended'])
+@bot.channel_post_handler(content_types=['voice_chat_ended'])
 @bot.message_handler(commands=['parar'])
 def bot_stop(message):
     log_text(message)
@@ -222,8 +223,8 @@ def bot_start(message):
         msg = bot.send_message(message.from_user.id, msgs.voice_start, parse_mode='HTML')
         usuario[message.from_user.id] = message.text.replace('/start ', '')
     elif message.chat.id > 0:
-        bot.reply_to(message, msgs.start_user, parse_mode='HTML', disable_web_page_preview=True)
         bot.send_document(message.from_user.id, 'CgACAgEAAxkBAAPTYEexcA2G2cn6g2CdZS4MOVvm4ScAAhgBAAJhYUFGN48mu1WuJXMeBA')
+        bot.send_message(message.from_user.id, msgs.start_user, parse_mode='HTML', disable_web_page_preview=True)
 
 @bot.message_handler(commands=['MeAvise'])
 def bot_notify(message):
@@ -264,8 +265,10 @@ def bot_notify(message):
         pass
 
 @bot.message_handler(content_types=['voice_chat_started'])
+@bot.channel_post_handler(content_types=['voice_chat_started'])
 @bot.message_handler(commands=['Notificar'])
 def voice_notify(message):
+    log_text(message)
     groupid = 'g' + str(message.chat.id*-1)
     msg = select_info('Chats_de_Voz', 'groupid', groupid)
     try:
