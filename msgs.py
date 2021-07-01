@@ -4,11 +4,11 @@ start_user = (
     '\nBasta me adicionar em um grupo e começar um novo chat de voz para que as pessoas possam ligar os alertas.'
     '\n'
     '\nGrupos e canais públicos com chats de voz ligados são listados no canal @Chats_de_Voz'
-    '\ne no site https://ChatsdeVoz.com'
+    '\ne no site <a href="https://ChatsdeVoz.com?utm_source=telegram&utm_medium=telegrammessage&utm_campaign=chatdevozbot">https://ChatsDeVoz.com</a>'
     '\nPara que seu grupo ou canal apareça no canal e no site, basta que o bot seja adicionado neles.'
     '\n'
     '\nCaso queira utilizar o bot para fazer inserções de voz com mensagens dos ouvintes, visite:'
-    '\nhttps://blog.gabrf.com/posts/TelegramVoiceChat/'
+    '\n<a href="https://blog.gabrf.com/posts/TelegramVoiceChat?utm_source=telegram&utm_medium=telegrammessage&utm_campaign=chatdevozbot">https://blog.gabrf.com</a>'
 )
 
 start_admin = (

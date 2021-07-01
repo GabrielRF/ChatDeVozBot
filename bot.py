@@ -1,13 +1,16 @@
 import configparser
+from bs4 import BeautifulSoup
 from datetime import datetime
 import logging.handlers
 import msgs
 import os
+import requests
 import sqlite3
 import subprocess
 import telebot
 import time
 from telebot import types
+import tweepy
 
 config = configparser.ConfigParser()
 config.read('chatdevozbot.conf')
@@ -19,6 +22,15 @@ db = 'ChatDeVoz'
 table = 'ChatDeVoz'
 
 bot = telebot.TeleBot(TOKEN)
+
+TW_CONS_KEY = config['TWITTER']['API_KEY']
+TW_CONS_SEC = config['TWITTER']['API_SECRET']
+TW_AC_TOKEN = config['TWITTER']['ACCESS_TOKEN']
+TW_AC_T_SEC = config['TWITTER']['ACCESS_SECRET']
+auth = tweepy.OAuthHandler(TW_CONS_KEY, TW_CONS_SEC)
+auth.set_access_token(TW_AC_TOKEN, TW_AC_T_SEC)
+twitter = tweepy.API(auth)
+hashtags = '#Telegram #ChatDeVoz'
 
 usuario = {}
 
@@ -32,6 +44,25 @@ logger_info.addHandler(handler_info)
 markup_btn = types.ReplyKeyboardMarkup(resize_keyboard=True)
 markup_btn.row('/Participar')
 markup_clean = types.ReplyKeyboardRemove(selective=False)
+
+def get_icon(url):
+    url = 'https://t.me/s/{}'.format(url.replace('@', ''))
+    response = requests.get(url)
+    if response.status_code == 200:
+        html = BeautifulSoup(response.content, 'html.parser')
+        return html.find("meta",  property="og:image").get('content')
+
+def send_twitter(title, username):
+    link = 'https://chatsdevoz.com/join?id={}'.format(username.replace('@', ''))
+    filename = 'temp.gif'
+    request = requests.get(get_icon(username), stream=True)
+    if request.status_code == 200:
+        with open(filename, 'wb') as image:
+            for chunk in request:
+                image.write(chunk)
+    message = ('{}\n{}\n{}').format(title, link, hashtags)
+    twitter.update_with_media(filename, message)
+    os.remove(filename)
 
 def voice_started(groupid, messageid):
     conn = sqlite3.connect(db)
@@ -124,7 +155,7 @@ def log_text(message):
     )
 
 @bot.message_handler(commands=['iniciar'])
-def bot_start(message):
+def cmd_start(message):
     log_text(message)
     bot.send_chat_action(message.chat.id, 'typing')
     if message.chat.id < 0:
@@ -149,7 +180,7 @@ def bot_start(message):
         pass
 
 @bot.message_handler(commands=['Participar'])
-def bot_start(message):
+def cmd_participar(message):
     try:
         msg = bot.send_message(message.from_user.id, msgs.voice_start, parse_mode='HTML')
         usuario[message.from_user.id] = message.chat.id
@@ -280,30 +311,37 @@ def voice_notify(message):
         msg = bot.send_message('@Chats_de_Voz', msgs.voice_started_group.format(message.chat.username), parse_mode='HTML')
         voice_started(groupid, msg.message_id)
 
-    status = bot.get_chat_member(message.chat.id, message.from_user.id).status
-    if status in ADMIN:
-        i = 0
-        groupid = 'g' + str(message.chat.id*-1)
-        try:
-            users = select_all(groupid)
-        except:
-            create_group_table(groupid)
-            users = select_all(groupid)
-        for user in users:
-            msg = msgs.voice_started.format(message.chat.title, str(message.chat.id).replace('-100', ''), message.message_id, groupid)
-            try:
-                bot.send_message(user[0], msg, parse_mode='HTML', disable_web_page_preview=True)
-                time.sleep(0.2)
-                i = i+1
-            except:
-                del_sub(groupid, user[0])
-                pass
     try:
-        bot.send_message(message.chat.id, msgs.notified.format(i, groupid), parse_mode='HTML', disable_web_page_preview=True)
+        status = bot.get_chat_member(message.chat.id, message.from_user.id).status
+        if status in ADMIN:
+            i = 0
+            groupid = 'g' + str(message.chat.id*-1)
+            try:
+                users = select_all(groupid)
+            except:
+                create_group_table(groupid)
+                users = select_all(groupid)
+            for user in users:
+                msg = msgs.voice_started.format(message.chat.title, str(message.chat.id).replace('-100', ''), message.message_id, groupid)
+                try:
+                    bot.send_message(user[0], msg, parse_mode='HTML', disable_web_page_preview=True)
+                    time.sleep(0.2)
+                    i = i+1
+                except:
+                    del_sub(groupid, user[0])
+                    pass
+        try:
+            bot.send_message(message.chat.id, msgs.notified.format(i, groupid), parse_mode='HTML', disable_web_page_preview=True)
+        except:
+            pass
     except:
         pass
     try:
         bot.delete_message(message.chat.id, message.message_id)
+    except:
+        pass
+    try:
+        send_twitter(message.chat.title, message.chat.username)
     except:
         pass
 
